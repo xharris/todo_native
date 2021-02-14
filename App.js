@@ -19,6 +19,7 @@ const App = () => {
       <NavigationContainer>
         <Stack.Navigator
           screenOptions={{
+            title: '',
             cardStyle: {
               backgroundColor: ground,
             },

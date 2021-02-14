@@ -7,6 +7,8 @@ import Button from 'component/button'
 import {useTasks} from 'util/storage'
 import {timeOfDay, useTimer} from 'util'
 import TaskUpdateDialog from 'feature/taskupdatedialog'
+import Body from 'feature/body'
+import moment from 'moment'
 
 const TaskPick = ({navigation}) => {
   const {tasks, chooseTask} = useTasks()
@@ -14,6 +16,7 @@ const TaskPick = ({navigation}) => {
   const [randTask, setRandTask] = useState()
   const [location, setLocation] = useState()
   const [taskFinished, setTaskFinished] = useState()
+  const [timeString, setTimeString] = useState()
 
   const {timeLeft, paused, pause, resume, reset, clear} = useTimer()
 
@@ -27,44 +30,61 @@ const TaskPick = ({navigation}) => {
   }, [randTask, tasks])
 
   useEffect(() => {
-    if (timeLeft) console.log(timeLeft.seconds())
-    if (timeLeft && !paused && timeLeft.seconds() <= 0) {
+    if (timeLeft && !paused && timeLeft <= 0) {
       pause()
       // show notification
     }
   }, [timeLeft, paused, pause])
 
+  useEffect(() => {
+    if (timeLeft) {
+      const timeObj = moment.duration(timeLeft * 1000)
+      setTimeString(
+        `for ${timeObj.hours()} hr ${timeObj.minutes()} min ${timeObj.seconds()} sec`,
+      )
+    }
+  }, [timeLeft])
+
   useLayoutEffect(() => {
     navigation.setOptions({
       title: '',
+      headerTransparent: true,
       headerLeft: () => (
-        <Button title="<-" onPress={() => navigation.navigate('TaskList')} />
+        <Button
+          icon="arrow-left"
+          onPress={() => navigation.navigate('TaskList')}
+        />
       ),
     })
   }, [navigation])
 
   return (
-    <View>
-      <TaskUpdateDialog
-        id={randTask}
-        open={taskFinished}
-        onClose={() => {
-          setRandTask()
-          setTaskText('What to do?')
-          setTaskFinished()
-          clear()
-        }}
-      />
+    <Body padTop>
+      {taskFinished && (
+        <TaskUpdateDialog
+          id={randTask}
+          open={taskFinished}
+          onClose={() => {
+            setRandTask()
+            setTaskText('What to do?')
+            setTaskFinished()
+            clear()
+          }}
+        />
+      )}
       {timeLeft ? (
         <View>
           <View>
             <Text>{taskText}</Text>
-            <Text>{`for ${timeLeft.minutes()} min ${timeLeft.seconds()} sec`}</Text>
+            <Text>{timeString}</Text>
           </View>
           <View>
             <Button
               icon={paused ? 'play' : 'pause'}
-              onPress={() => (paused ? resume() : pause())}
+              onPress={() => {
+                if (paused) resume()
+                else pause()
+              }}
             />
             <Button
               icon="stop"
@@ -99,6 +119,7 @@ const TaskPick = ({navigation}) => {
           {({list, limit, relax, ignore_time}) => [
             <View key="roll_container">
               <Button
+                style={styles('Roll')}
                 title={taskText}
                 onPress={() =>
                   setRandTask(chooseTask({list, relax, last_choice: randTask}))
@@ -106,7 +127,11 @@ const TaskPick = ({navigation}) => {
               />
               {randTask && [
                 <Text key="reroll">(Click to reroll)</Text>,
-                <Button key="start" icon="play" onPress={() => reset(limit)} />,
+                <Button
+                  key="start"
+                  icon="play"
+                  onPress={() => reset(limit * 60)}
+                />,
               ]}
             </View>,
             <View key="inputs">
@@ -152,8 +177,12 @@ const TaskPick = ({navigation}) => {
           ]}
         </Form>
       )}
-    </View>
+    </Body>
   )
 }
+
+const styles = style({
+  Roll: {},
+})
 
 export default TaskPick

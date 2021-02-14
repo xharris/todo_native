@@ -1,5 +1,13 @@
-import {useState, useEffect, useCallback} from 'react'
+import {
+  useState,
+  useEffect,
+  useCallback,
+  createContext,
+  useContext,
+} from 'react'
+import {InteractionManager} from 'react-native'
 import moment from 'moment'
+import BackgroundTimer from 'react-native-background-timer'
 
 export const timeOfDay = (date) => {
   const hour = moment(date).format('HH')
@@ -11,72 +19,50 @@ export const timeOfDay = (date) => {
 }
 
 export const useTimer = () => {
-  const [startTime, setStartTime] = useState()
   const [paused, setPaused] = useState(true)
   const [timeLeft, setTimeLeft] = useState()
-  const [realTimeLeft, setRealTimeLeft] = useState()
 
   useEffect(() => {
-    const updateRealTime = () => {
-      // console.log("update", realTimeLeft, timeLeft && startTime)
-      if (timeLeft && startTime)
-        setRealTimeLeft(
-          !realTimeLeft
-            ? moment.duration(timeLeft)
-            : moment
-                .duration(timeLeft)
-                .subtract(moment().diff(moment(startTime), 'seconds'), 's'),
-        )
-    }
-
-    let no_update, interval
-    updateRealTime()
-    interval = setInterval(() => {
-      if (!no_update && !paused) updateRealTime()
-    }, 500)
+    let interval
+    interval = BackgroundTimer.setInterval(() => {
+      InteractionManager.runAfterInteractions(() => {
+        if (!paused) setTimeLeft(timeLeft - 1)
+      })
+    }, 1000)
     return () => {
-      if (interval) clearInterval(interval)
-      no_update = true
+      BackgroundTimer.clearInterval(interval)
     }
-  }, [timeLeft, startTime, paused, realTimeLeft])
+  }, [timeLeft, paused])
 
-  const start = () => {
-    if (paused) {
-      setStartTime(moment().valueOf())
-      setPaused(false)
-    }
-  }
+  const start = useCallback(() => {
+    console.log('resuming')
+    setPaused(false)
+  }, [])
 
   const pause = useCallback(() => {
-    if (!paused) {
-      if (startTime)
-        // remove used minutes
-        setTimeLeft(
-          // timeLeft - minutes(now - start)
-          moment
-            .duration(timeLeft)
-            .subtract(moment().diff(moment(startTime), 'seconds'), 's'),
-        )
-      setStartTime(moment().valueOf())
+    console.log('pausing')
+    setPaused(true)
+  }, [])
+
+  const reset = useCallback(
+    (duration) => {
+      InteractionManager.runAfterInteractions(() => {
+        setPaused(true)
+        setTimeLeft(duration)
+      })
+    },
+    [setTimeLeft, setPaused],
+  )
+
+  const clear = useCallback(() => {
+    InteractionManager.runAfterInteractions(() => {
       setPaused(true)
-    }
-  }, [paused, startTime, setTimeLeft, timeLeft, setPaused])
-
-  const reset = (duration) => {
-    setTimeLeft(moment.duration(duration, 'minutes'))
-    setStartTime(moment().valueOf())
-    setPaused(true)
-  }
-
-  const clear = () => {
-    setPaused(true)
-    setRealTimeLeft()
-    setTimeLeft()
-    setStartTime()
-  }
+      setTimeLeft()
+    })
+  }, [setPaused, setTimeLeft])
 
   return {
-    timeLeft: realTimeLeft,
+    timeLeft,
     start,
     pause,
     resume: start,

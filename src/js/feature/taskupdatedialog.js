@@ -19,7 +19,7 @@ const TaskUpdateDialog = ({id, open, onClose}) => {
   }, [id, open, completeTask, onClose, tasks])
 
   return (
-    <Dialog open={open} centered>
+    <Dialog open={open} animationType="slide" centered>
       {tasks[id] && <Text>{tasks[id].text}</Text>}
       {tasks[id] && (
         <Form

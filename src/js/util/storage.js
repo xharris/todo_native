@@ -1,4 +1,5 @@
 import React, {useState, useEffect, createContext, useContext} from 'react'
+import {InteractionManager} from 'react-native'
 import {nanoid} from 'nanoid/non-secure'
 import moment from 'moment'
 import {choicew} from 'util/math'
@@ -40,7 +41,6 @@ export const StorageProvider = ({name, data: _data, dev, ...props}) => {
 
   useEffect(() => {
     if (!dev) {
-      console.log(data, loaded, full_name)
       if (data && loaded)
         setItem(full_name, JSON.stringify(data)).catch(() => {})
       if (!loaded)

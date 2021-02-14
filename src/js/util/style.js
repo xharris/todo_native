@@ -6,11 +6,13 @@ const themes = {
     ground: '#F5F5F5',
     level1: '#E0E0E0',
     level2: '#BDBDBD',
+    level3: '#9E9E9E',
   },
   dark: {
     ground: '#212121',
     level1: '#424242',
     level2: '#757575',
+    level3: '#9E9E9E',
   },
   any: {
     red300: '#e57373',
@@ -37,7 +39,10 @@ export const useColor = () => {
 
 export const style = (...args) => {
   const s = StyleSheet.create(...args)
-  return (name, override) => StyleSheet.compose(s[name], override)
+  return (name, ...overrides) =>
+    overrides.length > 1
+      ? StyleSheet.flatten([s[name], ...overrides])
+      : StyleSheet.compose(s[name], ...overrides)
 }
 
 export const pickFontColor = (bg, amt, opposite) => {
