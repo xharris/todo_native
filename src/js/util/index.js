@@ -1,13 +1,13 @@
-import { useState, useEffect, useCallback } from "react"
-import moment from "moment"
+import {useState, useEffect, useCallback} from 'react'
+import moment from 'moment'
 
 export const timeOfDay = (date) => {
-  const hour = moment(date).format("HH")
+  const hour = moment(date).format('HH')
   return hour >= 3 && hour < 12
-    ? "day_start"
+    ? 'day_start'
     : hour >= 12 && hour < 15
-    ? "day_mid"
-    : "day_end"
+    ? 'day_mid'
+    : 'day_end'
 }
 
 export const useTimer = () => {
@@ -16,19 +16,19 @@ export const useTimer = () => {
   const [timeLeft, setTimeLeft] = useState()
   const [realTimeLeft, setRealTimeLeft] = useState()
 
-  const updateRealTime = () => {
-    // console.log("update", realTimeLeft, timeLeft && startTime)
-    if (timeLeft && startTime)
-      setRealTimeLeft(
-        !realTimeLeft
-          ? moment.duration(timeLeft)
-          : moment
-              .duration(timeLeft)
-              .subtract(moment().diff(moment(startTime), "seconds"), "s")
-      )
-  }
-
   useEffect(() => {
+    const updateRealTime = () => {
+      // console.log("update", realTimeLeft, timeLeft && startTime)
+      if (timeLeft && startTime)
+        setRealTimeLeft(
+          !realTimeLeft
+            ? moment.duration(timeLeft)
+            : moment
+                .duration(timeLeft)
+                .subtract(moment().diff(moment(startTime), 'seconds'), 's'),
+        )
+    }
+
     let no_update, interval
     updateRealTime()
     interval = setInterval(() => {
@@ -38,7 +38,7 @@ export const useTimer = () => {
       if (interval) clearInterval(interval)
       no_update = true
     }
-  }, [timeLeft, startTime, paused])
+  }, [timeLeft, startTime, paused, realTimeLeft])
 
   const start = () => {
     if (paused) {
@@ -47,7 +47,7 @@ export const useTimer = () => {
     }
   }
 
-  const pause = () => {
+  const pause = useCallback(() => {
     if (!paused) {
       if (startTime)
         // remove used minutes
@@ -55,15 +55,15 @@ export const useTimer = () => {
           // timeLeft - minutes(now - start)
           moment
             .duration(timeLeft)
-            .subtract(moment().diff(moment(startTime), "seconds"), "s")
+            .subtract(moment().diff(moment(startTime), 'seconds'), 's'),
         )
       setStartTime(moment().valueOf())
       setPaused(true)
     }
-  }
+  }, [paused, startTime, setTimeLeft, timeLeft, setPaused])
 
   const reset = (duration) => {
-    setTimeLeft(moment.duration(duration, "minutes"))
+    setTimeLeft(moment.duration(duration, 'minutes'))
     setStartTime(moment().valueOf())
     setPaused(true)
   }

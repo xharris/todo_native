@@ -8,14 +8,21 @@ import {TaskProvider} from 'util/storage'
 import TaskList from 'feature/tasklist'
 import TaskPick from 'feature/taskpick'
 import TaskEdit from 'feature/taskedit'
+import {useColor} from 'util/style'
 
 const Stack = createStackNavigator()
 
 const App = () => {
+  const {ground} = useColor()
   return (
     <TaskProvider>
       <NavigationContainer>
-        <Stack.Navigator>
+        <Stack.Navigator
+          screenOptions={{
+            cardStyle: {
+              backgroundColor: ground,
+            },
+          }}>
           <Stack.Screen name="TaskList" component={TaskList} />
           <Stack.Screen name="TaskEdit" component={TaskEdit} />
           <Stack.Screen name="TaskPick" component={TaskPick} />
