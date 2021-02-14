@@ -9,23 +9,23 @@ import {style, useColor} from 'util/style'
 import Body from 'feature/body'
 
 const TaskEdit = ({route, navigation}) => {
-  const {tasks, updateTask} = useTasks()
+  const {getTask, updateTask} = useTasks()
   const {id} = route.params
   const [task, setTask] = useState()
 
   useLayoutEffect(() => {
     if (task) {
       navigation.setOptions({
-        title: tasks[id].text,
+        title: task.text,
         headerTransparent: true,
         headerLeft: () => (
           <Button icon="arrow-left" onPress={() => navigation.pop()} />
         ),
       })
-    } else if (tasks) {
-      setTask(tasks[id])
+    } else {
+      setTask(getTask(id))
     }
-  }, [navigation, tasks, id, task])
+  }, [navigation, getTask, id, task])
 
   const feelings = ['Relaxing', 'Neutral', 'Important']
   const feeling_icons = [
@@ -40,7 +40,7 @@ const TaskEdit = ({route, navigation}) => {
         style={styles('TaskEdit')}
         contentContainerStyle={{flexGrow: 1}}>
         <Form
-          data={{feeling: 2, ...task}}
+          data={{...task}}
           onSubmit={(data) => {
             updateTask({
               id,

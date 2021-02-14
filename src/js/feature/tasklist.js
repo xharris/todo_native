@@ -29,8 +29,10 @@ const Task = ({
   const avg_feeling =
     children && children.length > 0
       ? Math.floor(
-          children.reduce((sum, c) => sum + (tasks[c].feeling || 2), 0) /
-            children.length,
+          children.reduce(
+            (sum, c) => sum + (parseInt(tasks[c].feeling, 10) || 2),
+            0,
+          ) / children.length,
         )
       : feeling || 2
   const task_color =
@@ -187,12 +189,13 @@ const TaskList = ({navigation}) => {
               key="del"
               style={styles('Control')}
               icon="delete-outline"
-              onPress={() =>
+              onPress={() => {
+                const amt = Object.keys(selected).filter(
+                  (id) => selected[id] && !tasks[id].children,
+                ).length
                 Alert.alert(
                   'DELETE',
-                  `Delete ${
-                    Object.keys(selected).filter((id) => selected[id]).length
-                  } tasks?`,
+                  `Delete ${amt} task${amt === 1 ? '' : 's'}?`,
                   [
                     {
                       text: 'Cancel',
@@ -207,7 +210,7 @@ const TaskList = ({navigation}) => {
                     },
                   ],
                 )
-              }
+              }}
             />,
             <Button
               key="archive"

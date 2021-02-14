@@ -11,6 +11,7 @@ const most = (arr) => {
   let max_occur = 0
   let max_v
   arr.forEach((v) => {
+    v = v.toString()
     if (v != null) {
       if (!occur[v]) occur[v] = 0
       occur[v]++
