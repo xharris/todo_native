@@ -10,6 +10,7 @@ import {timeOfDay, useTimer} from 'util'
 import TaskUpdateDialog from 'feature/taskupdatedialog'
 import Body from 'feature/body'
 import moment from 'moment'
+import Push from 'react-native-push-notification'
 
 const TaskPick = ({navigation}) => {
   const {tasks, chooseTask} = useTasks()
@@ -31,11 +32,15 @@ const TaskPick = ({navigation}) => {
   }, [randTask, tasks])
 
   useEffect(() => {
-    if (timeLeft && !paused && timeLeft <= 0) {
+    if (!paused && timeLeft <= 0) {
       pause()
-      // show notification
+      console.log('show it')
+      Push.localNotification({
+        channelId: 'local_notif',
+        message: `Time's up for ${taskText}`,
+      })
     }
-  }, [timeLeft, paused, pause])
+  }, [timeLeft, paused, pause, taskText])
 
   useEffect(() => {
     if (timeLeft) {
@@ -77,7 +82,7 @@ const TaskPick = ({navigation}) => {
           clear()
         }}
       />
-      {timeLeft ? (
+      {timeLeft != null ? (
         <View style={styles('ViewTimer')}>
           <View>
             <Text style={styles('TaskText')}>{taskText}</Text>

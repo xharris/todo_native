@@ -3,12 +3,12 @@ import {Text as RnText} from 'react-native'
 import {style, styleCombine, useColor} from 'util/style'
 
 const Text = ({style: _style, ...props}) => {
-  const {uiFg} = useColor()
+  const {groundTint} = useColor()
   return (
     <RnText
       style={[
         styles('Text', {
-          color: uiFg,
+          color: groundTint,
         }),
         _style,
       ]}

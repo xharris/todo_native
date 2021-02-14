@@ -10,7 +10,7 @@ import Button from 'component/button'
 const TaskUpdateDialog = ({id, onClose, visible, ...props}) => {
   const {getTask, completeTask} = useTasks()
   const [task, setTask] = useState()
-  const {ground} = useColor()
+  const {antiBg} = useColor()
 
   useEffect(() => {
     if (id && !task) {
@@ -30,6 +30,7 @@ const TaskUpdateDialog = ({id, onClose, visible, ...props}) => {
       animationType="none"
       transparent={true}
       visible={visible}
+      onRequestClose={() => onClose()}
       {...props}>
       {task && (
         <View
@@ -38,7 +39,7 @@ const TaskUpdateDialog = ({id, onClose, visible, ...props}) => {
           })}>
           <View
             style={styles('ViewInner', {
-              backgroundColor: ground,
+              backgroundColor: antiBg,
             })}>
             <Text style={styles('Title')}>{`Update '${task.text}':`}</Text>
             <Form

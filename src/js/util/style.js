@@ -3,15 +3,23 @@ import {StyleSheet, useColorScheme, Platform, PlatformColor} from 'react-native'
 
 const themes = {
   light: {
+    headerTint: '#424242',
+    groundTint: '#424242',
     uiBg: '#90A4AE',
-    ground: '#212121',
-    level1: '#424242',
+    uiFg: '#F5F5F5',
+    antiBg: '#000000',
+    ground: '#FAFAFA',
+    level1: '#E0E0E0',
     level2: '#757575',
     level3: '#9E9E9E',
     level4: '#BDBDBD',
   },
   dark: {
+    headerTint: '#F5F5F5',
+    groundTint: '#F5F5F5',
     uiBg: '#607D8B',
+    uiFg: '#F5F5F5',
+    antiBg: '#FAFAFA',
     ground: '#000000',
     level1: '#212121',
     level2: '#303030',
@@ -19,7 +27,6 @@ const themes = {
     level4: '#757575',
   },
   any: {
-    uiFg: '#F5F5F5',
     uiRipple: '#78909C',
     red300: '#e57373',
     red500: '#f44336',

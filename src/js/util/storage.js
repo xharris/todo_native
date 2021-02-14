@@ -279,7 +279,7 @@ export const useTasks = () => {
       const time_of_day = timeOfDay()
 
       // get feeling to use
-      const feelings = options.relax ? [1, 2, 3] : [1, 2, 3]
+      const feelings = options.relax ? [1] : [1, 2, 3]
       const last_completed = getLastCompleted()
       const focus = options.relax
         ? 1

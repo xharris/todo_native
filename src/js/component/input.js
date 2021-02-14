@@ -27,11 +27,20 @@ const Input = ({
   ...props
 }) => {
   const {active, data, setValue} = useFormContext()
-  const {level2, level3, level4, uiFg, ...color} = useColor()
+  const {
+    level1,
+    level2,
+    level3,
+    level4,
+    groundTint,
+    uiFg,
+    ...color
+  } = useColor()
+  const textColor = groundTint
   const styleInner = styles('Inner', {
     marginLeft: 8,
     flexWrap: type === 'color' ? 'wrap' : 'nowrap',
-    color: uiFg,
+    color: textColor,
   })
   const [showDateTime, setShowDateTime] = useState()
   const el_input = useRef()
@@ -49,8 +58,8 @@ const Input = ({
   return (
     <Pressable
       style={styles('Input', {
-        backgroundColor: level2,
-        height: type === 'color' ? 'auto' : 40,
+        backgroundColor: level1,
+        height: type === 'color' || props.multiline ? 'auto' : 40,
         paddingTop: type === 'color' ? 4 : 0,
       })}
       onPress={() => {
@@ -62,23 +71,23 @@ const Input = ({
         <Icon
           name={icon}
           style={styles('Icon', {
-            color: uiFg,
+            color: textColor,
           })}
         />
       )}
-      {type === 'checkbox' && (props.placeholder || label) && (
+      {type === 'checkbox' && (props.placeholder || label) ? (
         <Text
           style={styles('SelectLabel', {
-            color: uiFg,
+            color: textColor,
           })}>
           {props.placeholder || label}
         </Text>
-      )}
+      ) : null}
       {type === 'checkbox' ? (
         <Switch
           ref={el_input}
           style={styles('Inner', {
-            color: uiFg,
+            color: textColor,
           })}
           value={value}
           onValueChange={setNewValue}
@@ -87,7 +96,7 @@ const Input = ({
       ) : type === 'select' ? (
         <Picker
           style={styles('Inner', {
-            color: uiFg,
+            color: textColor,
           })}
           itemStyle={styleInner}
           selectedValue={value && value.toString()}
@@ -106,7 +115,7 @@ const Input = ({
           <Text
             style={styles('Inner', {
               flexGrow: 0,
-              color: uiFg,
+              color: textColor,
             })}>
             {value
               ? moment(value).format('ddd, MMMM Do YYYY')
@@ -135,7 +144,7 @@ const Input = ({
                 backgroundColor: color[c],
                 marginRight: 5,
                 borderWidth: value === c ? 3 : 0,
-                borderColor: uiFg,
+                borderColor: textColor,
               })}
               onPress={() => setNewValue(c)}
             />
@@ -160,7 +169,7 @@ const Input = ({
           }}
         />
       )}
-      {!type && value && value.length > 0 && (
+      {!type && value && value.length > 0 && !props.multiline && (
         <Pressable
           style={styles('ButtonClear')}
           onPress={() => {
@@ -171,7 +180,7 @@ const Input = ({
           <Icon
             name="close-circle"
             style={styles('Icon', {
-              color: uiFg,
+              color: textColor,
             })}
           />
         </Pressable>
