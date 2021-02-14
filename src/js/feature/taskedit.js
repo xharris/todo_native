@@ -35,12 +35,16 @@ const TaskEdit = ({route, navigation}) => {
 
   return !task ? null : (
     <Body padTop>
-      <View style={styles('TaskEdit')}>
+      <ScrollView
+        style={styles('TaskEdit')}
+        contentContainerStyle={{flexGrow: 1}}>
         <Form
-          data={{...task}}
+          data={{feeling: 2, ...task}}
           onSubmit={(data) => {
             updateTask({
               id,
+              dline: data.dline,
+              has_dline: data.dline != null && data.has_dline,
               ...data,
             })
           }}>
@@ -59,6 +63,12 @@ const TaskEdit = ({route, navigation}) => {
                       name="color"
                       type="color"
                       icon="palette-outline"
+                    />,
+                    <Input
+                      key="exclude"
+                      name="exclude_all"
+                      type="checkbox"
+                      label="Exclude from 'All'?"
                     />,
                   ]
                 : [
@@ -86,20 +96,22 @@ const TaskEdit = ({route, navigation}) => {
                       type="checkbox"
                       name="only_at_home"
                     />,
-                    <Input
-                      key="parts_total"
-                      name="parts_total"
-                      keyboardType="numeric"
-                      placeholder="# of Parts"
-                    />,
-                    parts_total != null && parts_total.length > 0 && (
+                    parts_total && (
                       <Input
                         key="parts_done"
                         name="parts_done"
+                        icon="card-outline"
                         keyboardType="numeric"
                         placeholder="Parts completed (0)"
                       />
                     ),
+                    <Input
+                      key="parts_total"
+                      name="parts_total"
+                      icon="card-text-outline"
+                      keyboardType="numeric"
+                      placeholder="# of Parts"
+                    />,
                     <Input
                       key="has_dline"
                       name="has_dline"
@@ -142,7 +154,7 @@ const TaskEdit = ({route, navigation}) => {
             </>
           )}
         </Form>
-      </View>
+      </ScrollView>
     </Body>
   )
 }
@@ -151,7 +163,6 @@ const styles = style({
   TaskEdit: {
     flex: 1,
     flexDirection: 'column',
-    padding: 10,
     borderRadius: 3,
   },
 })

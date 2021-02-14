@@ -18,7 +18,10 @@ const Body = ({padTop, scroll, ...props}) => {
 }
 
 const styles = style({
-  Body: {},
+  Body: {
+    flex: 1,
+    paddingTop: 10,
+  },
 })
 
 export default Body

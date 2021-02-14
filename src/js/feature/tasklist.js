@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useLayoutEffect, useRef} from 'react'
 import {style, useColor, pickFontColor} from 'util/style'
-import {View, Text, FlatList, TouchableOpacity} from 'react-native'
+import {View, Text, FlatList, TouchableOpacity, Alert} from 'react-native'
 import {useTasks} from 'util/storage'
 import {useNavigation} from '@react-navigation/native'
 import LinearGradient from 'react-native-linear-gradient'
@@ -14,32 +14,39 @@ const Task = ({
   id,
   text,
   color: _color = 'grey500',
-  parts_done,
+  parts_done = 0,
   parts_total,
-  feeling = 1,
+  feeling = 2,
   children,
+  archived,
 }) => {
   const navigation = useNavigation()
   const [expanded, setExpanded] = useState(true)
-  const {tasks, addTask} = useTasks()
-  const color = useColor()
+  const {tasks, addTask, selecting, select, selected} = useTasks()
+  const {ground, ...color} = useColor()
 
   const feeling_colors = ['300', '500', '700']
-  const avg_feeling = children
-    ? Math.floor(
-        children.reduce((sum, c) => sum + (tasks[c].feeling || 2), 0) /
-          children.length,
-      )
-    : feeling
+  const avg_feeling =
+    children && children.length > 0
+      ? Math.floor(
+          children.reduce((sum, c) => sum + (tasks[c].feeling || 2), 0) /
+            children.length,
+        )
+      : feeling || 2
   const task_color =
     color[`${_color.slice(0, -3)}${feeling_colors[avg_feeling - 1]}`]
 
   return (
     <View style={styles('Task')}>
       <TouchableOpacity
-        onLongPress={() => navigation.push('TaskEdit', {id})}
+        style={styles('TaskTouchable')}
+        onLongPress={() => !selecting && navigation.push('TaskEdit', {id})}
         onPress={() =>
-          children ? setExpanded(!expanded) : navigation.push('TaskEdit', {id})
+          selecting
+            ? select(id)
+            : children
+            ? setExpanded(!expanded)
+            : navigation.push('TaskEdit', {id})
         }>
         <View
           style={styles('TaskBorder', {
@@ -52,17 +59,35 @@ const Task = ({
               end={{x: 1, y: 0}}
               locations={
                 parts_total
-                  ? [
-                      Math.max(parts_done - 5, 0) / parts_total,
-                      parts_done / parts_total,
-                    ]
+                  ? [parts_done / parts_total, parts_done / parts_total]
                   : [1, 1]
               }
               colors={[task_color, 'rgba(0,0,0,0)']}>
+              {selecting && (
+                <View
+                  style={styles('TaskSelectView', {
+                    backgroundColor: ground,
+                  })}>
+                  <Button
+                    style={styles('TaskSelectButton')}
+                    iconStyle={styles('TaskSelectIcon', {
+                      color: task_color,
+                    })}
+                    icon={
+                      selected[id]
+                        ? 'checkbox-marked'
+                        : 'checkbox-blank-outline'
+                    }
+                    onPress={() => select(id)}
+                  />
+                </View>
+              )}
               <Text
                 style={styles('TaskText', {
                   backgroundColor: task_color,
                   color: pickFontColor(task_color),
+                  textDecorationLine: archived ? 'line-through' : 'none',
+                  fontStyle: archived ? 'italic' : 'normal',
                 })}>{`${text}${children ? ` (${children.length})` : ''}`}</Text>
             </LinearGradient>
           )}
@@ -97,7 +122,7 @@ const TaskChildren = ({root, color, list}) => {
 
   return (
     <FlatList
-      style={!root && styles('TaskChildrenRoot')}
+      style={styles(root ? 'TaskChildren' : 'TaskChildrenRoot')}
       data={data}
       keyExtractor={(task) => task.id}
       renderItem={renderItem}
@@ -106,7 +131,7 @@ const TaskChildren = ({root, color, list}) => {
 }
 
 const TaskList = ({navigation}) => {
-  const {level2} = useColor()
+  const {uiBg} = useColor()
   useLayoutEffect(() => {
     navigation.setOptions({
       headerShown: false,
@@ -122,25 +147,81 @@ const TaskList = ({navigation}) => {
     selecting,
     select,
     selected,
+    toggleSelecting,
+    deleteSelected,
+    unarchiveSelected,
+    archiveSelected,
   } = useTasks()
 
   return (
     <Body>
+      <View style={styles('Controls')}>
+        {tasks._root && tasks._root.children.length > 0 && (
+          <Button
+            style={styles('Control')}
+            icon={selecting ? 'checkbox-blank' : 'checkbox-blank-outline'}
+            onPress={() => toggleSelecting()}
+          />
+        )}
+        {selecting && [
+          <Button
+            key="del"
+            style={styles('Control')}
+            icon="delete-outline"
+            onPress={() =>
+              Alert.alert(
+                'DELETE',
+                `Delete ${
+                  Object.keys(selected).filter((id) => selected[id]).length
+                } tasks?`,
+                [
+                  {
+                    text: 'Cancel',
+                    onPress: () => {},
+                    style: 'cancel',
+                  },
+                  {
+                    text: 'Ok',
+                    onPress: () => {
+                      deleteSelected()
+                    },
+                  },
+                ],
+              )
+            }
+          />,
+          <Button
+            key="archive"
+            style={styles('Control')}
+            icon="archive"
+            onPress={() => archiveSelected()}
+          />,
+          <Button
+            key="unarchive"
+            style={styles('Control')}
+            icon="archive-arrow-up-outline"
+            onPress={() => unarchiveSelected()}
+          />,
+        ]}
+      </View>
       <View style={styles('TaskList')}>
         {/* ctrl */}
         {tasks && tasks._root && (
           <TaskChildren list={tasks._root.children} root={true} />
         )}
-        <View style={styles('TaskAdd')}>
+        <View
+          style={styles('TaskAdd', {
+            marginLeft: 5,
+          })}>
           <Button
             style={styles('TaskAdd')}
-            icon="plus"
+            icon="folder-plus-outline"
             onPress={() => addTask(null, true)}
           />
         </View>
       </View>
       <FAB
-        buttonColor={level2}
+        buttonColor={uiBg}
         iconTextComponent={<Icon name="dice-multiple-outline" />}
         onClickAction={() => navigation.navigate('TaskPick')}
       />
@@ -152,6 +233,14 @@ const styles = style({
   TaskList: {
     padding: 15,
   },
+  Controls: {
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+  },
+  Control: {
+    marginRight: 15,
+  },
+  TaskChildren: {},
   TaskChildrenRoot: {
     paddingLeft: 20,
   },
@@ -168,6 +257,8 @@ const styles = style({
   TaskGradient: {
     paddingHorizontal: 10,
     paddingVertical: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   TaskText: {
     alignSelf: 'flex-start',
@@ -182,6 +273,21 @@ const styles = style({
     paddingLeft: 20,
     alignSelf: 'flex-start',
   },
+  TaskSelectView: {
+    width: 14,
+    height: 12,
+    borderRadius: 3,
+    overflow: 'visible',
+  },
+  TaskSelectButton: {
+    width: 18,
+    height: 18,
+    position: 'absolute',
+    overflow: 'visible',
+    top: -3,
+    left: -3,
+  },
+  TaskSelectIcon: {},
 })
 
 export default TaskList

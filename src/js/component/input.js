@@ -30,6 +30,7 @@ const Input = ({
   const {level1, ...color} = useColor()
   const styleInner = styles('Inner', {
     marginLeft: 8,
+    flexWrap: type === 'color' ? 'wrap' : 'nowrap',
   })
   const [showDateTime, setShowDateTime] = useState()
   const el_input = useRef()
@@ -44,13 +45,19 @@ const Input = ({
   )
 
   const value = active && name ? data[name] : _value
-
   return (
-    <View
+    <Pressable
       style={styles('Input', {
         backgroundColor: level1,
-      })}>
-      {icon && <Icon name={icon} />}
+        height: type === 'color' ? 'auto' : 40,
+        paddingTop: type === 'color' ? 4 : 0,
+      })}
+      onPress={() => {
+        if (type === 'checkbox') {
+          setNewValue(!value)
+        }
+      }}>
+      {icon && <Icon name={icon} style={styles('Icon')} />}
       {type === 'checkbox' && (props.placeholder || label) && (
         <Text style={styles('SelectLabel')}>{props.placeholder || label}</Text>
       )}
@@ -66,10 +73,13 @@ const Input = ({
         <Picker
           style={styles('Inner')}
           itemStyle={styleInner}
-          selectedValue={value}
+          selectedValue={value && value.toString()}
           onValueChange={setNewValue}
           {...props}>
-          {choices && choices.map((c) => <Picker.Item {...c} />)}
+          {choices &&
+            choices.map((c) => (
+              <Picker.Item {...c} value={c.value.toString()} />
+            ))}
         </Picker>
       ) : type === 'date' || type === 'time' ? (
         <Pressable
@@ -87,7 +97,19 @@ const Input = ({
         </Pressable>
       ) : type === 'color' ? (
         <View style={styleInner}>
-          {(colors || ['red500', 'blue500']).map((c) => (
+          {(
+            colors || [
+              'red500',
+              'pink500',
+              'purple500',
+              'blue500',
+              'green500',
+              'yellow500',
+              'orange500',
+              'brown500',
+              'grey500',
+            ]
+          ).map((c) => (
             <Pressable
               key={c}
               android_ripple={true}
@@ -104,14 +126,14 @@ const Input = ({
         <TextInput
           ref={el_input}
           style={styleInner}
-          value={value && value.toString()}
+          value={value != null ? value.toString() : value}
           onChangeText={setNewValue}
           {...props}
         />
       )}
       {showDateTime && (
         <DateTimePicker
-          value={new Date(value)}
+          value={new Date(value ? value : null)}
           onChange={(e, v) => {
             setShowDateTime(false)
             setNewValue(v)
@@ -129,22 +151,26 @@ const Input = ({
           <Icon name="close-circle" />
         </Pressable>
       )}
-    </View>
+    </Pressable>
   )
 }
 
 const styles = style({
   Input: {
     width: '100%',
-    height: 40,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 10,
-    paddingVertical: 0,
+    height: 40,
     fontSize: 16,
     borderRadius: 4,
     marginBottom: 5,
+  },
+  Icon: {
+    width: 30,
+    flexShrink: 0,
+    textAlign: 'center',
   },
   SelectLabel: {
     flexGrow: 1,
@@ -159,6 +185,7 @@ const styles = style({
   Inner: {
     flexDirection: 'row',
     flexGrow: 1,
+    flexShrink: 1,
     fontSize: 16,
     padding: 0,
   },
@@ -172,6 +199,7 @@ const styles = style({
     width: 30,
     height: 30,
     borderRadius: 3,
+    marginBottom: 4,
   },
 })
 

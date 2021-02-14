@@ -82,16 +82,32 @@ export const TaskProvider = ({...props}) => (
 export const useTasks = () => {
   const {loaded, data, updateData, state, updateState} = useStorage()
   useEffect(() => {
-    if (loaded && !data.tasks) {
+    if (loaded && (!data.tasks || !data.tasks._root)) {
       console.log('loaded')
       updateData({tasks: {_root: {children: []}}})
     }
+    console.log(loaded, data.tasks)
   }, [loaded, data, updateData])
-
-  const getTask = (id) => data.tasks[id]
+  const getTask = (id) => {
+    const {feeling, children, parts_done, parts_total, ...task} = data.tasks[id]
+    return task
+      ? {
+          ...task,
+          id: id,
+          children,
+          feeling: feeling == null && !children ? 2 : parseInt(feeling, 10),
+          parts_done: parts_total ? parseInt(parts_done || 0, 10) : null,
+          parts_total,
+        }
+      : {}
+  }
+  const getTasks = () => {
+    const tasks = data.tasks
+    Object.keys(data.tasks).forEach((t) => (tasks[t] = getTask(t)))
+    return tasks
+  }
   const updateTask = ({id, ...props}) => {
-    console.log(data.tasks)
-    const old_data = data.tasks[id] || {}
+    const old_data = getTask(id)
 
     if (props.parts_done) props.parts_done = parseInt(props.parts_done)
     if (props.parts_total) props.parts_total = parseInt(props.parts_total)
@@ -103,7 +119,12 @@ export const useTasks = () => {
   const addTask = (id, is_folder) => {
     const parentid = id || '_root'
     const newid = nanoid(5)
-    const {tasks} = data
+    const tasks = getTasks()
+    if (!tasks[parentid] && parentid === '_root') {
+      tasks._root = {
+        children: [],
+      }
+    }
     const children = tasks[parentid].children || []
     updateData({
       tasks: {
@@ -127,7 +148,7 @@ export const useTasks = () => {
     // add to new parent
   }
   const deleteSelected = () => {
-    const tasks = {...data.tasks}
+    const tasks = getTasks()
     const selected = state.selected
       ? Object.keys(state.selected).filter((s) => state.selected[s])
       : []
@@ -143,13 +164,35 @@ export const useTasks = () => {
     })
     updateData({tasks})
   }
+  const archiveSelected = () => {
+    const tasks = getTasks()
+    const selected = state.selected
+      ? Object.keys(state.selected).filter((s) => state.selected[s])
+      : []
+    selected.forEach((id) => {
+      if (!tasks[id].children) tasks[id].archived = true
+    })
+    updateData({tasks})
+  }
+  const unarchiveSelected = () => {
+    const tasks = getTasks()
+    const selected = state.selected
+      ? Object.keys(state.selected).filter((s) => state.selected[s])
+      : []
+    selected.forEach((id) => {
+      if (!tasks[id].children) tasks[id].archived = false
+    })
+    updateData({tasks})
+  }
   const getLastCompleted = () => {
+    const tasks = getTasks()
     let max_last_done = 0
     let max_task
-    Object.values(data.tasks).forEach((task) => {
+    Object.keys(tasks).forEach((t) => {
+      const task = tasks[t]
       if ((!max_last_done && task.last_done) || task.last_done < max_task) {
         max_last_done = task.last_done
-        max_task = task
+        max_task = {...task, id: t}
       }
     })
     return max_task
@@ -168,7 +211,7 @@ export const useTasks = () => {
     select: (id) => {
       const selected = {...state.selected}
       const is_folder = data.tasks[id].children != null
-      const tasks = {...data.tasks}
+      const tasks = getTasks()
       selected[id] = selected[id] == null ? true : !selected[id]
 
       if (is_folder) {
@@ -227,12 +270,15 @@ export const useTasks = () => {
     selected: state.selected || {},
     deleteSelected,
     getLastCompleted,
+    archiveSelected,
+    unarchiveSelected,
     chooseTask: (options) => {
-      const tasks = data.tasks
+      console.log('### CHOOSING ###')
+      const tasks = getTasks()
       const time_of_day = timeOfDay()
 
       // get feeling to use
-      const feelings = options.relax ? [1] : [1, 2, 3]
+      const feelings = options.relax ? [1, 2, 3] : [1, 2, 3]
       const last_completed = getLastCompleted()
       const focus = options.relax
         ? 1
@@ -240,10 +286,10 @@ export const useTasks = () => {
         ? (last_completed.feeling % feelings.length) + 1
         : feelings[0]
 
+      const list_ids = Object.keys(tasks).filter((id) => tasks[id].children)
       let task_list = Object.keys(tasks)
         .map((t) => ({
           ...tasks[t],
-          feeling: parseInt(tasks[t].feeling) || 2,
           id: t,
         }))
         // filter out irrelevant tasks
@@ -251,15 +297,24 @@ export const useTasks = () => {
           (task) =>
             // not completed/archived
             !task.archived &&
-            (!task.parts_total ||
-              parseInt(task.parts_done < task.parts_total)) &&
+            (!task.parts_total || task.parts_done < task.parts_total) &&
             !task.children && // no folders
-            feelings.includes(task.feeling) && // focus
+            (feelings.includes(task.feeling) || options.list !== 'all') && // focus
             // time of day
-            (task[time_of_day] === true || task[time_of_day] == null) &&
+            (options.ignore_time ||
+              task[time_of_day] === true ||
+              task[time_of_day] == null) &&
             // list
             (options.list === 'all' ||
-              tasks[options.list].children.includes(task.id)),
+              tasks[options.list].children.includes(task.id)) &&
+            (options.list !== 'all' ||
+              list_ids.every(
+                (id) =>
+                  !(
+                    tasks[id].children.includes(task.id) &&
+                    tasks[id].exclude_all
+                  ),
+              )),
         )
 
       // mean_norm
@@ -351,9 +406,20 @@ export const useTasks = () => {
       const weights = {}
       task_list.forEach((task) => (weights[task.id] = task.w))
       let choice = options.last_choice
-      while (Object.keys(weights).length > 1 && choice === options.last_choice)
+      let weight_count = Object.keys(weights).length
+      while (weight_count > 1 && choice === options.last_choice)
         choice = choicew(weights)
-      // console.log(key_cache, task_list)
+      if (weight_count === 1) choice = Object.keys(weights)[0]
+      Object.keys(tasks).forEach((t) => {
+        console.log(tasks[t])
+      })
+      console.log({
+        last_completed: last_completed ? last_completed.id : null,
+        task_list,
+        focus,
+        options,
+        weights,
+      })
       return choice
     },
   }

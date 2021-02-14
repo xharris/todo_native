@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useRef} from 'react'
-import {StyleSheet, Appearance, useColorScheme} from 'react-native'
+import {StyleSheet, useColorScheme, Platform, PlatformColor} from 'react-native'
 
 const themes = {
   light: {
@@ -15,12 +15,33 @@ const themes = {
     level3: '#9E9E9E',
   },
   any: {
+    uiBg: '#90A4AE',
+    uiFg: '#F5F5F5',
+    uiRipple: '#78909C',
     red300: '#e57373',
     red500: '#f44336',
     red700: '#d32f2f',
+    pink300: '#F06292',
+    pink500: '#E91E63',
+    pink700: '#C2185B',
+    purple300: '#9575CD',
+    purple500: '#673AB7',
+    purple700: '#512DA8',
     blue300: '#64B5F6',
     blue500: '#2196F3',
     blue700: '#1976D2',
+    green300: '#81C784',
+    green500: '#4CAF50',
+    green700: '#388E3C',
+    yellow300: '#FFF176',
+    yellow500: '#FFEB3B',
+    yellow700: '#FBC02D',
+    orange300: '#FFB74D',
+    orange500: '#FF9800',
+    orange700: '#F57C00',
+    brown300: '#A1887F',
+    brown500: '#795548',
+    brown700: '#5D4037',
     grey300: '#E0E0E0',
     grey500: '#9E9E9E',
     grey700: '#616161',
@@ -40,10 +61,14 @@ export const useColor = () => {
 export const style = (...args) => {
   const s = StyleSheet.create(...args)
   return (name, ...overrides) =>
-    overrides.length > 1
+    overrides.length === 0
+      ? s[name]
+      : overrides.length > 1
       ? StyleSheet.flatten([s[name], ...overrides])
       : StyleSheet.compose(s[name], ...overrides)
 }
+
+export const styleCombine = (...args) => StyleSheet.flatten(...args)
 
 export const pickFontColor = (bg, amt, opposite) => {
   amt = amt || 30

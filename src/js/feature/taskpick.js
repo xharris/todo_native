@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useLayoutEffect, useRef} from 'react'
-import {StyleSheet, View, Text, Alert} from 'react-native'
+import {StyleSheet, View, Text, Alert, ToastAndroid} from 'react-native'
 import {style, useColor} from 'util/style'
 import Form from 'component/form'
 import Input from 'component/input'
@@ -15,7 +15,7 @@ const TaskPick = ({navigation}) => {
   const [taskText, setTaskText] = useState('What to do?')
   const [randTask, setRandTask] = useState()
   const [location, setLocation] = useState()
-  const [taskFinished, setTaskFinished] = useState()
+  const [taskFinished, setTaskFinished] = useState(false)
   const [timeString, setTimeString] = useState()
 
   const {timeLeft, paused, pause, resume, reset, clear} = useTimer()
@@ -39,8 +39,13 @@ const TaskPick = ({navigation}) => {
   useEffect(() => {
     if (timeLeft) {
       const timeObj = moment.duration(timeLeft * 1000)
+      const hours = timeObj.hours()
+      const minutes = timeObj.minutes()
+      const seconds = timeObj.seconds()
       setTimeString(
-        `for ${timeObj.hours()} hr ${timeObj.minutes()} min ${timeObj.seconds()} sec`,
+        `${hours > 0 ? `${hours} hr ` : ''}${
+          minutes > 0 || hours > 0 ? `${minutes} min ` : ''
+        }${seconds > 0 || minutes > 0 || hours > 0 ? `${seconds} sec ` : ''}`,
       )
     }
   }, [timeLeft])
@@ -49,37 +54,37 @@ const TaskPick = ({navigation}) => {
     navigation.setOptions({
       title: '',
       headerTransparent: true,
-      headerLeft: () => (
-        <Button
-          icon="arrow-left"
-          onPress={() => navigation.navigate('TaskList')}
-        />
-      ),
+      headerLeft: () =>
+        timeLeft ? null : (
+          <Button
+            icon="arrow-left"
+            onPress={() => navigation.navigate('TaskList')}
+          />
+        ),
     })
-  }, [navigation])
+  }, [navigation, timeLeft])
 
   return (
-    <Body padTop>
-      {taskFinished && (
-        <TaskUpdateDialog
-          id={randTask}
-          open={taskFinished}
-          onClose={() => {
-            setRandTask()
-            setTaskText('What to do?')
-            setTaskFinished()
-            clear()
-          }}
-        />
-      )}
+    <Body>
+      <TaskUpdateDialog
+        id={randTask}
+        visible={taskFinished}
+        onClose={() => {
+          setRandTask()
+          setTaskText('What to do?')
+          setTaskFinished(false)
+          clear()
+        }}
+      />
       {timeLeft ? (
-        <View>
+        <View style={styles('ViewTimer')}>
           <View>
-            <Text>{taskText}</Text>
-            <Text>{timeString}</Text>
+            <Text style={styles('TaskText')}>{taskText}</Text>
+            <Text style={styles('TimerText')}>{timeString}</Text>
           </View>
-          <View>
+          <View style={styles('TimerControls')}>
             <Button
+              style={styles('TimerButton')}
               icon={paused ? 'play' : 'pause'}
               onPress={() => {
                 if (paused) resume()
@@ -87,6 +92,7 @@ const TaskPick = ({navigation}) => {
               }}
             />
             <Button
+              style={styles('TimerButton')}
               icon="stop"
               onPress={() =>
                 Alert.alert('STOP', 'Stop the task completely?', [
@@ -109,6 +115,7 @@ const TaskPick = ({navigation}) => {
         </View>
       ) : (
         <Form
+          style={styles('View')}
           data={{
             list: 'all',
             opposite_loc: false,
@@ -117,24 +124,38 @@ const TaskPick = ({navigation}) => {
             ignore_time: false,
           }}>
           {({list, limit, relax, ignore_time}) => [
-            <View key="roll_container">
+            <View key="roll_container" style={styles('RollContainer')}>
               <Button
-                style={styles('Roll')}
+                style={styles('RollButton')}
+                textStyle={styles('RollText')}
                 title={taskText}
-                onPress={() =>
-                  setRandTask(chooseTask({list, relax, last_choice: randTask}))
-                }
+                onPress={() => {
+                  const choice = chooseTask({
+                    list,
+                    relax,
+                    last_choice: randTask,
+                    ignore_time,
+                  })
+                  if (choice) setRandTask(choice)
+                  else
+                    ToastAndroid.show(
+                      'No task found with given options!',
+                      ToastAndroid.LONG,
+                    )
+                }}
               />
               {randTask && [
-                <Text key="reroll">(Click to reroll)</Text>,
+                <Text key="reroll">(Press again to reroll)</Text>,
                 <Button
                   key="start"
                   icon="play"
+                  label="Start"
+                  style={styles('PlayButton')}
                   onPress={() => reset(limit * 60)}
                 />,
               ]}
             </View>,
-            <View key="inputs">
+            <View key="inputs" style={styles('FormInputs')}>
               <Input
                 type="select"
                 name="list"
@@ -144,7 +165,6 @@ const TaskPick = ({navigation}) => {
                     .filter(
                       (t) =>
                         t !== '_root' &&
-                        !tasks[t].exclude_all &&
                         tasks[t].children &&
                         tasks[t].children.length > 0,
                     )
@@ -182,7 +202,49 @@ const TaskPick = ({navigation}) => {
 }
 
 const styles = style({
-  Roll: {},
+  View: {
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'space-around',
+    padding: 20,
+  },
+  RollContainer: {
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  RollButton: {
+    paddingVertical: 30,
+  },
+  RollText: {
+    fontSize: 25,
+  },
+  PlayButton: {
+    marginTop: 20,
+    width: 'auto',
+  },
+  FormInputs: {},
+  ViewTimer: {
+    flex: 1,
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  TimerControls: {
+    flexDirection: 'row',
+    marginTop: 50,
+  },
+  TaskText: {
+    textAlign: 'center',
+    fontSize: 18,
+  },
+  TimerText: {
+    fontSize: 30,
+    fontWeight: '800',
+    marginTop: 50,
+  },
+  TimerButton: {
+    marginRight: 10,
+  },
 })
 
 export default TaskPick
