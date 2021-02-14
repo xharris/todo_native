@@ -67,14 +67,14 @@ const Input = ({
           setNewValue(!value)
         }
       }}>
-      {icon && (
+      {icon ? (
         <Icon
           name={icon}
           style={styles('Icon', {
             color: textColor,
           })}
         />
-      )}
+      ) : null}
       {type === 'checkbox' && (props.placeholder || label) ? (
         <Text
           style={styles('SelectLabel', {
@@ -160,7 +160,7 @@ const Input = ({
           {...props}
         />
       )}
-      {showDateTime && (
+      {showDateTime ? (
         <DateTimePicker
           value={new Date(value ? value : null)}
           onChange={(e, v) => {
@@ -168,8 +168,8 @@ const Input = ({
             setNewValue(v)
           }}
         />
-      )}
-      {!type && value && value.length > 0 && !props.multiline && (
+      ) : null}
+      {!type && value && value.length > 0 && !props.multiline ? (
         <Pressable
           style={styles('ButtonClear')}
           onPress={() => {
@@ -184,7 +184,7 @@ const Input = ({
             })}
           />
         </Pressable>
-      )}
+      ) : null}
     </Pressable>
   )
 }

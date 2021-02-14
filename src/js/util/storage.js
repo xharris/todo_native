@@ -1,4 +1,10 @@
-import React, {useState, useEffect, createContext, useContext} from 'react'
+import React, {
+  useState,
+  useEffect,
+  createContext,
+  useContext,
+  useCallback,
+} from 'react'
 import {InteractionManager} from 'react-native'
 import {nanoid} from 'nanoid/non-secure'
 import moment from 'moment'
@@ -89,19 +95,24 @@ export const useTasks = () => {
     }
     // console.log(loaded, data.tasks)
   }, [loaded, data, updateData])
-  const getTask = (id) => {
-    const {feeling, children, parts_done, parts_total, ...task} = data.tasks[id]
-    return task
-      ? {
-          ...task,
-          id: id,
-          children,
-          feeling: feeling == null && !children ? 2 : parseInt(feeling, 10),
-          parts_done: parts_total ? parseInt(parts_done || 0, 10) : null,
-          parts_total,
-        }
-      : {}
-  }
+  const getTask = useCallback(
+    (id) => {
+      const {feeling, children, parts_done, parts_total, ...task} = data.tasks[
+        id
+      ]
+      return task
+        ? {
+            ...task,
+            id: id,
+            children,
+            feeling: feeling == null && !children ? 2 : parseInt(feeling, 10),
+            parts_done: parts_total ? parseInt(parts_done || 0, 10) : null,
+            parts_total,
+          }
+        : {}
+    },
+    [data],
+  )
   const getTasks = () => {
     const tasks = data.tasks
     Object.keys(data.tasks).forEach((t) => (tasks[t] = getTask(t)))

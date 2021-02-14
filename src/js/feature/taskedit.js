@@ -19,24 +19,20 @@ const TaskEdit = ({route, navigation}) => {
   const [editing, setEditing] = useState(false)
 
   useLayoutEffect(() => {
-    if (task) {
-      navigation.setOptions({
-        title: task.text,
-        headerTransparent: true,
-        headerLeft: () => (
-          <Button icon="arrow-left" onPress={() => navigation.pop()} />
-        ),
-        headerRight: () => (
-          <Button
-            icon={editing ? 'close' : 'pencil'}
-            onPress={() => setEditing(!editing)}
-          />
-        ),
-      })
-    } else {
-      setTask(getTask(id))
-    }
-  }, [navigation, getTask, id, task, editing])
+    navigation.setOptions({
+      title: getTask(id).text,
+      headerTransparent: true,
+      headerLeft: () => (
+        <Button icon="arrow-left" onPress={() => navigation.pop()} />
+      ),
+      headerRight: () => (
+        <Button
+          icon={editing ? 'close' : 'pencil'}
+          onPress={() => setEditing(!editing)}
+        />
+      ),
+    })
+  }, [navigation, getTask, id, editing])
 
   const feelings = ['Relaxing', 'Neutral', 'Important']
   const feeling_icons = [
@@ -45,13 +41,13 @@ const TaskEdit = ({route, navigation}) => {
     'emoticon-frown-outline',
   ]
 
-  return !task ? null : (
+  return !id ? null : (
     <Body padTop>
       <ScrollView
         style={styles('TaskEdit')}
         contentContainerStyle={{flexGrow: 1}}>
         <Form
-          data={{...task}}
+          data={{...getTask(id)}}
           onSubmit={(data) => {
             updateTask({
               id,
@@ -258,6 +254,7 @@ const TaskEdit = ({route, navigation}) => {
                     placeholder="Notes"
                     numberOfLines={5}
                     multiline
+                    textAlignVertical="top"
                   />
                 </View>
                 <Button key="submit" title="Save" submit />
