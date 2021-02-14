@@ -86,7 +86,7 @@ export const useTasks = () => {
       console.log('loaded')
       updateData({tasks: {_root: {children: []}}})
     }
-    console.log(loaded, data.tasks)
+    // console.log(loaded, data.tasks)
   }, [loaded, data, updateData])
   const getTask = (id) => {
     const {feeling, children, parts_done, parts_total, ...task} = data.tasks[id]

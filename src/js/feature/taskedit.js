@@ -1,6 +1,7 @@
 import React, {useState, useEffect, useLayoutEffect, useRef} from 'react'
-import {StyleSheet, View, ScrollView, Text} from 'react-native'
+import {StyleSheet, View, ScrollView} from 'react-native'
 import {useTasks} from 'util/storage'
+import Text from 'component/text'
 import Form from 'component/form'
 import Input from 'component/input'
 import Button from 'component/button'
@@ -136,6 +137,7 @@ const TaskEdit = ({route, navigation}) => {
                       key="recur_amt"
                       name="recur_amt"
                       keyboardType="numeric"
+                      placeholder="Number of..."
                     />,
                     <Input
                       key="recur_type"

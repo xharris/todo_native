@@ -1,49 +1,24 @@
-import React, { useState, useEffect, useRef } from "react";
-import { cx, css, block, pickFontColor } from "style";
-import { useInteractions } from "util/mobile";
+import React, {useState, useEffect, useRef} from 'react'
+import {Text as RnText} from 'react-native'
+import {style, styleCombine, useColor} from 'util/style'
 
-const bss = block("text");
-
-const Text = ({
-  className,
-  defaultValue,
-  onChange,
-  onClick,
-  onLongPress,
-  editable,
-  children,
-}) => {
-  const [editing, setEditing] = useState();
-  const [value, setValue] = useState(defaultValue);
-  const el_input = useRef();
-  const { events } = useInteractions({
-    onLongPress,
-  });
-
-  useEffect(() => {
-    if (editing && el_input.current) el_input.current.focus();
-  }, [el_input, editing]);
-
-  return !editable ? (
-    <p
-      ref={el_input}
-      className={cx(bss(), className)}
-      onClick={onClick}
-      {...events}
-    >
-      {value || children}
-    </p>
-  ) : (
-    <input
-      ref={el_input}
-      className={cx(bss(), className)}
-      value={value}
-      onChange={(e) => setValue(e.target.value)}
-      type="text"
-      onClick={onClick}
-      {...events}
+const Text = ({style: _style, ...props}) => {
+  const {uiFg} = useColor()
+  return (
+    <RnText
+      style={[
+        styles('Text', {
+          color: uiFg,
+        }),
+        _style,
+      ]}
+      {...props}
     />
-  );
-};
+  )
+}
 
-export default Text;
+const styles = style({
+  Text: {},
+})
+
+export default Text

@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler'
 import React from 'react'
-import {StyleSheet, View, Text, Button} from 'react-native'
+import {StyleSheet, View, Text, Button, StatusBar} from 'react-native'
 import {Colors} from 'react-native/Libraries/NewAppScreen'
 import {NavigationContainer} from '@react-navigation/native'
 import {createStackNavigator} from '@react-navigation/stack'
@@ -13,16 +13,18 @@ import {useColor} from 'util/style'
 const Stack = createStackNavigator()
 
 const App = () => {
-  const {ground} = useColor()
+  const {ground, uiFg} = useColor()
   return (
     <TaskProvider>
       <NavigationContainer>
+        <StatusBar translucent backgroundColor="transparent" />
         <Stack.Navigator
           screenOptions={{
             title: '',
             cardStyle: {
               backgroundColor: ground,
             },
+            headerTintColor: uiFg,
           }}>
           <Stack.Screen name="TaskList" component={TaskList} />
           <Stack.Screen name="TaskEdit" component={TaskEdit} />

@@ -40,6 +40,7 @@ const Task = ({
     <View style={styles('Task')}>
       <TouchableOpacity
         style={styles('TaskTouchable')}
+        activeOpacity={0.75}
         onLongPress={() => !selecting && navigation.push('TaskEdit', {id})}
         onPress={() =>
           selecting
@@ -63,32 +64,42 @@ const Task = ({
                   : [1, 1]
               }
               colors={[task_color, 'rgba(0,0,0,0)']}>
-              {selecting && (
-                <View
-                  style={styles('TaskSelectView', {
-                    backgroundColor: ground,
-                  })}>
-                  <Button
-                    style={styles('TaskSelectButton')}
-                    iconStyle={styles('TaskSelectIcon', {
-                      color: task_color,
-                    })}
-                    icon={
-                      selected[id]
-                        ? 'checkbox-marked'
-                        : 'checkbox-blank-outline'
-                    }
-                    onPress={() => select(id)}
-                  />
-                </View>
+              <View style={styles('TaskTextContainer')}>
+                {selecting && (
+                  <View
+                    style={styles('TaskSelectView', {
+                      backgroundColor: ground,
+                    })}>
+                    <Button
+                      style={styles('TaskSelectButton')}
+                      iconStyle={styles('TaskSelectIcon', {
+                        color: task_color,
+                      })}
+                      icon={
+                        selected[id]
+                          ? 'checkbox-marked'
+                          : 'checkbox-blank-outline'
+                      }
+                      onPress={() => select(id)}
+                    />
+                  </View>
+                )}
+                <Text
+                  style={styles('TaskText', {
+                    backgroundColor: task_color,
+                    color: pickFontColor(task_color),
+                    textDecorationLine: archived ? 'line-through' : 'none',
+                    fontStyle: archived ? 'italic' : 'normal',
+                  })}>{`${text}${
+                  children ? ` (${children.length})` : ''
+                }`}</Text>
+              </View>
+              {children && (
+                <Icon
+                  style={styles('TaskExpand')}
+                  name={expanded ? 'chevron-up' : 'chevron-down'}
+                />
               )}
-              <Text
-                style={styles('TaskText', {
-                  backgroundColor: task_color,
-                  color: pickFontColor(task_color),
-                  textDecorationLine: archived ? 'line-through' : 'none',
-                  fontStyle: archived ? 'italic' : 'normal',
-                })}>{`${text}${children ? ` (${children.length})` : ''}`}</Text>
             </LinearGradient>
           )}
         </View>
@@ -99,7 +110,10 @@ const Task = ({
           <Button
             style={styles('TaskAdd')}
             icon="plus"
-            onPress={() => addTask(id) && setExpanded(true)}
+            onPress={() => {
+              addTask(id)
+              setExpanded(true)
+            }}
           />
         </View>
       )}
@@ -119,13 +133,17 @@ const TaskChildren = ({root, color, list}) => {
     }))
 
   const renderItem = ({item}) => <Task {...item} color={color || item.color} />
+  const el_flatlist = useRef()
 
   return (
     <FlatList
-      style={styles(root ? 'TaskChildren' : 'TaskChildrenRoot')}
+      ref={el_flatlist}
+      style={styles(root ? 'TaskChildrenRoot' : 'TaskChildren')}
+      contentContainerStyle={{flexGrow: 1}}
       data={data}
       keyExtractor={(task) => task.id}
       renderItem={renderItem}
+      // onContentSizeChange={() => el_flatlist.current.scrollToEnd()}
     />
   )
 }
@@ -155,64 +173,63 @@ const TaskList = ({navigation}) => {
 
   return (
     <Body>
-      <View style={styles('Controls')}>
-        {tasks._root && tasks._root.children.length > 0 && (
-          <Button
-            style={styles('Control')}
-            icon={selecting ? 'checkbox-blank' : 'checkbox-blank-outline'}
-            onPress={() => toggleSelecting()}
-          />
-        )}
-        {selecting && [
-          <Button
-            key="del"
-            style={styles('Control')}
-            icon="delete-outline"
-            onPress={() =>
-              Alert.alert(
-                'DELETE',
-                `Delete ${
-                  Object.keys(selected).filter((id) => selected[id]).length
-                } tasks?`,
-                [
-                  {
-                    text: 'Cancel',
-                    onPress: () => {},
-                    style: 'cancel',
-                  },
-                  {
-                    text: 'Ok',
-                    onPress: () => {
-                      deleteSelected()
+      <View style={styles('MainView')}>
+        <View style={styles('Controls')}>
+          {tasks._root && tasks._root.children.length > 0 && (
+            <Button
+              style={styles('Control')}
+              icon={selecting ? 'checkbox-blank' : 'checkbox-blank-outline'}
+              onPress={() => toggleSelecting()}
+            />
+          )}
+          {selecting && [
+            <Button
+              key="del"
+              style={styles('Control')}
+              icon="delete-outline"
+              onPress={() =>
+                Alert.alert(
+                  'DELETE',
+                  `Delete ${
+                    Object.keys(selected).filter((id) => selected[id]).length
+                  } tasks?`,
+                  [
+                    {
+                      text: 'Cancel',
+                      onPress: () => {},
+                      style: 'cancel',
                     },
-                  },
-                ],
-              )
-            }
-          />,
-          <Button
-            key="archive"
-            style={styles('Control')}
-            icon="archive"
-            onPress={() => archiveSelected()}
-          />,
-          <Button
-            key="unarchive"
-            style={styles('Control')}
-            icon="archive-arrow-up-outline"
-            onPress={() => unarchiveSelected()}
-          />,
-        ]}
-      </View>
-      <View style={styles('TaskList')}>
-        {/* ctrl */}
-        {tasks && tasks._root && (
-          <TaskChildren list={tasks._root.children} root={true} />
-        )}
-        <View
-          style={styles('TaskAdd', {
-            marginLeft: 5,
-          })}>
+                    {
+                      text: 'Ok',
+                      onPress: () => {
+                        deleteSelected()
+                      },
+                    },
+                  ],
+                )
+              }
+            />,
+            <Button
+              key="archive"
+              style={styles('Control')}
+              icon="archive"
+              onPress={() => archiveSelected()}
+            />,
+            <Button
+              key="unarchive"
+              style={styles('Control')}
+              icon="archive-arrow-up-outline"
+              onPress={() => unarchiveSelected()}
+            />,
+          ]}
+        </View>
+        <View style={styles('TaskList')}>
+          {/* ctrl */}
+          {tasks && tasks._root && (
+            <TaskChildren list={tasks._root.children} root={true} />
+          )}
+        </View>
+        <View style={styles('TaskAddRoot')}>
           <Button
             style={styles('TaskAdd')}
             icon="folder-plus-outline"
@@ -230,24 +247,48 @@ const TaskList = ({navigation}) => {
 }
 
 const styles = style({
-  TaskList: {
-    padding: 15,
+  MainView: {
+    flexDirection: 'column',
+    flex: 1,
   },
   Controls: {
     paddingHorizontal: 20,
+    flexBasis: 40,
     flexDirection: 'row',
+    flex: 1,
+    flexShrink: 0,
   },
-  Control: {
-    marginRight: 15,
+  TaskList: {
+    padding: 15,
+    flex: 1,
+    flexShrink: 1,
+    flexBasis: '100%',
   },
-  TaskChildren: {},
+  TaskAddRoot: {
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    flex: 1,
+    flexShrink: 0,
+    flexBasis: 50,
+  },
   TaskChildrenRoot: {
-    paddingLeft: 20,
+    flex: 1,
+    flexGrow: 1,
+    flexBasis: '100%',
   },
   Task: {
     flex: 1,
     flexDirection: 'column',
     alignItems: 'stretch',
+  },
+  TaskAdd: {
+    alignSelf: 'flex-start',
+  },
+  Control: {
+    marginRight: 15,
+  },
+  TaskChildren: {
+    paddingLeft: 20,
   },
   TaskBorder: {
     borderWidth: 2,
@@ -259,14 +300,17 @@ const styles = style({
     paddingVertical: 5,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
   TaskText: {
     alignSelf: 'flex-start',
     borderRadius: 6,
     paddingHorizontal: 6,
   },
-  TaskAdd: {
-    alignSelf: 'flex-start',
+  TaskTextContainer: {
+    height: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   GoRandom: {},
   TaskAddChild: {
@@ -288,6 +332,7 @@ const styles = style({
     left: -3,
   },
   TaskSelectIcon: {},
+  TaskExpand: {},
 })
 
 export default TaskList

@@ -1,26 +1,42 @@
 import React, {useState, useEffect, useLayoutEffect, useRef} from 'react'
 import {style, useColor, pickFontColor} from 'util/style'
-import {ScrollView, View, Text, FlatList, TouchableOpacity} from 'react-native'
+import {
+  ScrollView,
+  SafeAreaView,
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StatusBar,
+} from 'react-native'
 import {useHeaderHeight} from '@react-navigation/stack'
 
-const Body = ({padTop, scroll, ...props}) => {
+const Body = ({padTop, scroll, _style, ...props}) => {
   const headerHeight = useHeaderHeight()
   const Container = scroll ? ScrollView : View
   return (
-    <Container
-      style={styles('Body', {
-        marginTop: padTop ? headerHeight : 0,
-        height: '100%',
-      })}
-      {...props}
-    />
+    <SafeAreaView style={styles('Safe')}>
+      <Container
+        style={[
+          styles('Body', {
+            marginTop: padTop ? headerHeight : 0,
+            height: '100%',
+            paddingBottom: headerHeight,
+          }),
+          _style,
+        ]}
+        {...props}
+      />
+    </SafeAreaView>
   )
 }
 
 const styles = style({
-  Body: {
+  Safe: {
     flex: 1,
-    paddingTop: 10,
+  },
+  Body: {
+    paddingTop: 10 + StatusBar.currentHeight,
   },
 })
 

@@ -1,6 +1,7 @@
 import React, {useState, useEffect, useLayoutEffect, useRef} from 'react'
-import {StyleSheet, View, Text, Alert, ToastAndroid} from 'react-native'
+import {StyleSheet, View, Alert, ToastAndroid} from 'react-native'
 import {style, useColor} from 'util/style'
+import Text from 'component/text'
 import Form from 'component/form'
 import Input from 'component/input'
 import Button from 'component/button'

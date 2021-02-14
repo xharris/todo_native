@@ -27,10 +27,11 @@ const Input = ({
   ...props
 }) => {
   const {active, data, setValue} = useFormContext()
-  const {level1, ...color} = useColor()
+  const {level2, level3, level4, uiFg, ...color} = useColor()
   const styleInner = styles('Inner', {
     marginLeft: 8,
     flexWrap: type === 'color' ? 'wrap' : 'nowrap',
+    color: uiFg,
   })
   const [showDateTime, setShowDateTime] = useState()
   const el_input = useRef()
@@ -48,7 +49,7 @@ const Input = ({
   return (
     <Pressable
       style={styles('Input', {
-        backgroundColor: level1,
+        backgroundColor: level2,
         height: type === 'color' ? 'auto' : 40,
         paddingTop: type === 'color' ? 4 : 0,
       })}
@@ -57,21 +58,37 @@ const Input = ({
           setNewValue(!value)
         }
       }}>
-      {icon && <Icon name={icon} style={styles('Icon')} />}
+      {icon && (
+        <Icon
+          name={icon}
+          style={styles('Icon', {
+            color: uiFg,
+          })}
+        />
+      )}
       {type === 'checkbox' && (props.placeholder || label) && (
-        <Text style={styles('SelectLabel')}>{props.placeholder || label}</Text>
+        <Text
+          style={styles('SelectLabel', {
+            color: uiFg,
+          })}>
+          {props.placeholder || label}
+        </Text>
       )}
       {type === 'checkbox' ? (
         <Switch
           ref={el_input}
-          style={styles('Inner')}
+          style={styles('Inner', {
+            color: uiFg,
+          })}
           value={value}
           onValueChange={setNewValue}
           {...props}
         />
       ) : type === 'select' ? (
         <Picker
-          style={styles('Inner')}
+          style={styles('Inner', {
+            color: uiFg,
+          })}
           itemStyle={styleInner}
           selectedValue={value && value.toString()}
           onValueChange={setNewValue}
@@ -89,6 +106,7 @@ const Input = ({
           <Text
             style={styles('Inner', {
               flexGrow: 0,
+              color: uiFg,
             })}>
             {value
               ? moment(value).format('ddd, MMMM Do YYYY')
@@ -116,7 +134,8 @@ const Input = ({
               style={styles('Color', {
                 backgroundColor: color[c],
                 marginRight: 5,
-                borderWidth: value === c ? 2 : 0,
+                borderWidth: value === c ? 3 : 0,
+                borderColor: uiFg,
               })}
               onPress={() => setNewValue(c)}
             />
@@ -128,6 +147,7 @@ const Input = ({
           style={styleInner}
           value={value != null ? value.toString() : value}
           onChangeText={setNewValue}
+          placeholderTextColor={level4}
           {...props}
         />
       )}
@@ -140,7 +160,7 @@ const Input = ({
           }}
         />
       )}
-      {!type && (
+      {!type && value && value.length > 0 && (
         <Pressable
           style={styles('ButtonClear')}
           onPress={() => {
@@ -148,7 +168,12 @@ const Input = ({
             el_input.current.focus()
             setValue(name, null)
           }}>
-          <Icon name="close-circle" />
+          <Icon
+            name="close-circle"
+            style={styles('Icon', {
+              color: uiFg,
+            })}
+          />
         </Pressable>
       )}
     </Pressable>

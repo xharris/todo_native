@@ -3,19 +3,22 @@ import {StyleSheet, useColorScheme, Platform, PlatformColor} from 'react-native'
 
 const themes = {
   light: {
-    ground: '#F5F5F5',
-    level1: '#E0E0E0',
-    level2: '#BDBDBD',
-    level3: '#9E9E9E',
-  },
-  dark: {
+    uiBg: '#90A4AE',
     ground: '#212121',
     level1: '#424242',
     level2: '#757575',
     level3: '#9E9E9E',
+    level4: '#BDBDBD',
+  },
+  dark: {
+    uiBg: '#607D8B',
+    ground: '#000000',
+    level1: '#212121',
+    level2: '#303030',
+    level3: '#424242',
+    level4: '#757575',
   },
   any: {
-    uiBg: '#90A4AE',
     uiFg: '#F5F5F5',
     uiRipple: '#78909C',
     red300: '#e57373',
@@ -52,7 +55,7 @@ export const useColor = () => {
   const scheme = useColorScheme()
   const [colors, setColors] = useState({})
   useEffect(() => {
-    setColors({...themes.any, ...themes[scheme]})
+    setColors({...themes.any, ...themes[scheme], isDark: scheme === 'dark'})
   }, [scheme])
 
   return colors
