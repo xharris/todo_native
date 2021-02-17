@@ -155,12 +155,6 @@ const TaskChildren = ({root, color, list}) => {
 
 const TaskList = ({navigation}) => {
   const {uiBg} = useColor()
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    })
-  }, [navigation])
-
   const {
     tasks,
     updateTask,
@@ -176,16 +170,33 @@ const TaskList = ({navigation}) => {
     archiveSelected,
   } = useTasks()
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: '',
+      headerShown: false,
+    })
+  }, [navigation])
+
   return (
     <Body>
       <View style={styles('MainView')}>
         <View style={styles('Controls')}>
-          {tasks._root && tasks._root.children.length > 0 && (
-            <Button
-              style={styles('Control')}
-              icon={selecting ? 'checkbox-blank' : 'checkbox-blank-outline'}
-              onPress={() => toggleSelecting()}
-            />
+          {tasks._root && (
+            <>
+              {tasks._root.children.length > 0 && (
+                <Button
+                  style={styles('Control')}
+                  icon={selecting ? 'checkbox-blank' : 'checkbox-blank-outline'}
+                  onPress={() => toggleSelecting()}
+                />
+              )}
+              {!selecting && (
+                <Button
+                  icon="cog-outline"
+                  onPress={() => navigation.push('TaskSettings')}
+                />
+              )}
+            </>
           )}
           {selecting && [
             <Button
@@ -218,7 +229,7 @@ const TaskList = ({navigation}) => {
             <Button
               key="archive"
               style={styles('Control')}
-              icon="archive"
+              icon="archive-arrow-down"
               onPress={() => archiveSelected()}
             />,
             <Button

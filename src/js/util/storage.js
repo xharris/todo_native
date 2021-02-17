@@ -90,11 +90,15 @@ export const useTasks = () => {
   const {loaded, data, updateData, state, updateState} = useStorage()
   useEffect(() => {
     if (loaded && (!data.tasks || !data.tasks._root)) {
-      console.log('loaded')
       updateData({tasks: {_root: {children: []}}})
     }
-    // console.log(loaded, data.tasks)
-  }, [loaded, data, updateData])
+    if (
+      state.selecting &&
+      data.tasks._root &&
+      data.tasks._root.children.length === 0
+    )
+      updateState({selected: {}, selecting: false})
+  }, [loaded, data, state, updateData, updateState])
   const getTask = useCallback(
     (id) => {
       const {feeling, children, parts_done, parts_total, ...task} = data.tasks[
@@ -121,8 +125,8 @@ export const useTasks = () => {
   const updateTask = ({id, ...props}) => {
     const old_data = getTask(id)
 
-    if (props.parts_done) props.parts_done = parseInt(props.parts_done)
-    if (props.parts_total) props.parts_total = parseInt(props.parts_total)
+    if (props.parts_done) props.parts_done = parseInt(props.parts_done, 10)
+    if (props.parts_total) props.parts_total = parseInt(props.parts_total, 10)
 
     updateData({
       tasks: {...data.tasks, [id]: {...old_data, ...props}},
@@ -175,6 +179,7 @@ export const useTasks = () => {
       delete tasks[id]
     })
     updateData({tasks})
+    updateState({selected: {}})
   }
   const archiveSelected = () => {
     const tasks = getTasks()
@@ -284,6 +289,22 @@ export const useTasks = () => {
     getLastCompleted,
     archiveSelected,
     unarchiveSelected,
+    backup: () => {
+      updateData(
+        JSON.parse(
+          JSON.stringify({
+            backup: {
+              tasks: data.tasks,
+            },
+          }),
+        ),
+      )
+    },
+    restore: () => {
+      if (data.backup) {
+        updateData(JSON.parse(JSON.stringify(data.backup)))
+      }
+    },
     chooseTask: (options) => {
       console.log('### CHOOSING ###')
       const tasks = getTasks()

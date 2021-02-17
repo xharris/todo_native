@@ -11,8 +11,9 @@ import {
 } from 'react-native'
 import {useHeaderHeight} from '@react-navigation/stack'
 
-const Body = ({padTop, scroll, _style, ...props}) => {
+const Body = ({padTop, scroll, _style, headerLeft, ...props}) => {
   const headerHeight = useHeaderHeight()
+
   const Container = scroll ? ScrollView : View
   return (
     <SafeAreaView style={styles('Safe')}>

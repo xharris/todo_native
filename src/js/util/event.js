@@ -21,3 +21,18 @@ export const toast = ({msg, duration = 'short', title = ''}) =>
           text: 'Ok',
         },
       ])
+
+export const confirm = (title, desc) =>
+  new Promise((res, rej) => {
+    Alert.alert(title, desc, [
+      {
+        text: 'Cancel',
+        onPress: () => res(false),
+        style: 'cancel',
+      },
+      {
+        text: 'Ok',
+        onPress: () => res(true),
+      },
+    ])
+  })
