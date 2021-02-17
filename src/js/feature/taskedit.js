@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useLayoutEffect, useRef} from 'react'
-import {StyleSheet, View, ScrollView} from 'react-native'
+import {StyleSheet, View, ScrollView, Alert} from 'react-native'
 import {useTasks} from 'util/storage'
 import Text from 'component/text'
 import Form from 'component/form'
@@ -14,7 +14,6 @@ import moment from 'moment'
 const TaskEdit = ({route, navigation}) => {
   const {getTask, updateTask} = useTasks()
   const {id} = route.params
-  const [task, setTask] = useState()
   const [updating, setUpdating] = useState(false)
   const [editing, setEditing] = useState(false)
 
@@ -227,7 +226,7 @@ const TaskEdit = ({route, navigation}) => {
                     </Text>
                   </View>
                 )}
-                {parts_total && (
+                {parts_total ? (
                   <View style={styles('PreviewSection')}>
                     <Icon
                       name="card-text-outline"
@@ -238,6 +237,34 @@ const TaskEdit = ({route, navigation}) => {
                         'PreviewText',
                       )}>{`${parts_done} / ${parts_total}`}</Text>
                     <Button icon="plus" onPress={() => setUpdating(true)} />
+                  </View>
+                ) : (
+                  <View style={styles('PreviewSection')}>
+                    <Button
+                      icon="checkbox-marked-outline"
+                      label="Mark done"
+                      onPress={() =>
+                        Alert.alert(
+                          'ARE YOU SURE?',
+                          has_dline
+                            ? 'Mark as completed?'
+                            : 'Mark as recently done?',
+                          [
+                            {
+                              text: 'Cancel',
+                              onPress: () => {},
+                              style: 'cancel',
+                            },
+                            {
+                              text: 'Ok',
+                              onPress: () => {
+                                setUpdating(true)
+                              },
+                            },
+                          ],
+                        )
+                      }
+                    />
                   </View>
                 )}
                 {has_dline && (

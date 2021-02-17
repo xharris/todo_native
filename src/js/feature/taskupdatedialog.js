@@ -61,7 +61,11 @@ const TaskUpdateDialog = ({id, onClose, visible, ...props}) => {
                     </View>
                   )}
                   {has_dline === true && !parts_total && (
-                    <Input name="archived" label="Completed?" type="checkbox" />
+                    <Input
+                      name="completed"
+                      label="Completed?"
+                      type="checkbox"
+                    />
                   )}
                   <Button submit title="Ok" style={styles('Submit')} />
                 </>

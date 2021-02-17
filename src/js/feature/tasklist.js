@@ -44,13 +44,13 @@ const Task = ({
         style={styles('TaskTouchable')}
         activeOpacity={0.75}
         onLongPress={() => !selecting && navigation.push('TaskEdit', {id})}
-        onPress={() =>
-          selecting
-            ? select(id)
-            : children
-            ? setExpanded(!expanded)
-            : navigation.push('TaskEdit', {id})
-        }>
+        onPress={() => {
+          if (selecting) {
+            if (!expanded) setExpanded(true)
+            else select(id)
+          } else if (children) setExpanded(!expanded)
+          else navigation.push('TaskEdit', {id})
+        }}>
         <View
           style={styles('TaskBorder', {
             borderColor: task_color,
@@ -96,39 +96,42 @@ const Task = ({
                   children ? ` (${children.length})` : ''
                 }`}</Text>
               </View>
-              {children && (
+              {children && !selecting ? (
                 <Icon
-                  style={styles('TaskExpand')}
+                  style={styles('TaskExpand', {
+                    color: pickFontColor(task_color),
+                  })}
                   name={expanded ? 'chevron-up' : 'chevron-down'}
                 />
-              )}
+              ) : null}
             </LinearGradient>
           )}
         </View>
       </TouchableOpacity>
       {children && expanded && <TaskChildren color={_color} list={children} />}
-      {children && (
+      {children ? (
         <View style={styles('TaskAddChild')}>
           <Button
             style={styles('TaskAdd')}
             icon="plus"
+            disabled={selecting}
             onPress={() => {
               addTask(id)
               setExpanded(true)
             }}
           />
         </View>
-      )}
+      ) : null}
     </View>
   )
 }
 
 const TaskChildren = ({root, color, list}) => {
   const {tasks} = useTasks()
+  const archived = list.filter((t) => tasks[t].archived)
   const data = list
-    .sort((a, b) =>
-      tasks[a].archived === tasks[b].archived ? 0 : tasks[a] ? -1 : 1,
-    )
+    .filter((t) => !tasks[t].archived)
+    .concat(archived)
     .map((id) => ({
       ...tasks[id],
       id,
@@ -325,6 +328,7 @@ const styles = style({
     height: 12,
     borderRadius: 3,
     overflow: 'visible',
+    marginRight: 4,
   },
   TaskSelectButton: {
     width: 18,

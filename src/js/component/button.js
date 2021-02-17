@@ -15,6 +15,7 @@ const Button = ({
   style: _style,
   iconStyle,
   title,
+  disabled,
   ...props
 }) => {
   const {uiBg, uiFg, isDark} = useColor()
@@ -29,6 +30,7 @@ const Button = ({
         width: just_icon ? BTN_SIZE : '100%',
         borderRadius: just_icon ? BTN_SIZE / 2 : 3,
         paddingHorizontal: title || label ? 10 : 0,
+        opacity: disabled ? 0.25 : 1,
         ...(_style || textStyle),
       })}
       android_ripple={{
@@ -44,6 +46,7 @@ const Button = ({
           onPress(e)
         }
       }}
+      disabled={disabled}
       {...props}>
       <ReactIcon
         name={icon}

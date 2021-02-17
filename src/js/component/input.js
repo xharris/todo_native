@@ -162,7 +162,7 @@ const Input = ({
       )}
       {showDateTime ? (
         <DateTimePicker
-          value={new Date(value ? value : null)}
+          value={value != null ? new Date(value) : new Date()}
           onChange={(e, v) => {
             setShowDateTime(false)
             setNewValue(v)
