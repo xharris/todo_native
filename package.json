@@ -5,6 +5,7 @@
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
+    "myphone": "react-native run-android --variant release",
     "start": "react-native start",
     "test": "jest",
     "lint": "eslint ."
@@ -30,7 +31,8 @@
     "react-native-safe-area-context": "^3.1.9",
     "react-native-screens": "^2.17.1",
     "react-native-stopwatch-timer": "^0.0.21",
-    "react-native-vector-icons": "^8.0.0"
+    "react-native-vector-icons": "^8.0.0",
+    "tinycolor2": "^1.4.2"
   },
   "devDependencies": {
     "@babel/core": "^7.8.4",

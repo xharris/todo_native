@@ -223,6 +223,7 @@ export const useTasks = () => {
     editing: state.editing,
     setEditing: (id) => updateState({editing: id}),
     selecting: state.selecting,
+    setExpanded: (id, v) => updateTask({id, expanded: v}),
     toggleSelecting: () =>
       updateState({selected: {}, selecting: !state.selecting}),
     select: (id) => {

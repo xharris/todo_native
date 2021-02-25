@@ -24,6 +24,7 @@ const Input = ({
   onChange,
   choices,
   colors,
+  className,
   ...props
 }) => {
   const {active, data, setValue} = useFormContext()
@@ -34,6 +35,7 @@ const Input = ({
     level4,
     groundTint,
     uiFg,
+    list,
     ...color
   } = useColor()
   const textColor = groundTint
@@ -57,11 +59,14 @@ const Input = ({
   const value = active && name ? data[name] : _value
   return (
     <Pressable
-      style={styles('Input', {
-        backgroundColor: level1,
-        height: type === 'color' || props.multiline ? 'auto' : 40,
-        paddingTop: type === 'color' ? 4 : 0,
-      })}
+      style={[
+        styles('Input', {
+          backgroundColor: level1,
+          height: type === 'color' || props.multiline ? 'auto' : 40,
+          paddingTop: type === 'color' ? 4 : 0,
+        }),
+        className,
+      ]}
       onPress={() => {
         if (type === 'checkbox') {
           setNewValue(!value)
@@ -124,19 +129,7 @@ const Input = ({
         </Pressable>
       ) : type === 'color' ? (
         <View style={styleInner}>
-          {(
-            colors || [
-              'red500',
-              'pink500',
-              'purple500',
-              'blue500',
-              'green500',
-              'yellow500',
-              'orange500',
-              'brown500',
-              'grey500',
-            ]
-          ).map((c) => (
+          {(colors || list('500')).map((c) => (
             <Pressable
               key={c}
               android_ripple={true}

@@ -19,10 +19,11 @@ const Task = ({
   feeling = 2,
   children,
   archived,
+  expanded: _expanded = true,
 }) => {
   const navigation = useNavigation()
-  const [expanded, setExpanded] = useState(true)
-  const {tasks, addTask, selecting, select, selected} = useTasks()
+  const [expandedOverride, setExpandedOverride] = useState(true)
+  const {tasks, addTask, selecting, select, selected, setExpanded} = useTasks()
   const {ground, ...color} = useColor()
 
   const feeling_colors = ['300', '500', '700']
@@ -37,18 +38,25 @@ const Task = ({
       : feeling || 2
   const task_color =
     color[`${_color.slice(0, -3)}${feeling_colors[avg_feeling - 1]}`]
+  const expanded = expandedOverride || _expanded
+
+  useEffect(() => {
+    if (!selecting) setExpandedOverride(false)
+  }, [selecting])
 
   return (
     <View style={styles('Task')}>
       <TouchableOpacity
         style={styles('TaskTouchable')}
         activeOpacity={0.75}
-        onLongPress={() => !selecting && navigation.push('TaskEdit', {id})}
+        onLongPress={
+          !selecting ? () => navigation.push('TaskEdit', {id}) : null
+        }
         onPress={() => {
           if (selecting) {
-            if (!expanded) setExpanded(true)
+            if (!expanded) setExpandedOverride(true)
             else select(id)
-          } else if (children) setExpanded(!expanded)
+          } else if (children) setExpanded(id, !expanded)
           else navigation.push('TaskEdit', {id})
         }}>
         <View
@@ -92,6 +100,7 @@ const Task = ({
                     color: pickFontColor(task_color),
                     textDecorationLine: archived ? 'line-through' : 'none',
                     fontStyle: archived ? 'italic' : 'normal',
+                    fontSize: children ? 16 : 14,
                   })}>{`${text}${
                   children ? ` (${children.length})` : ''
                 }`}</Text>
@@ -109,7 +118,7 @@ const Task = ({
         </View>
       </TouchableOpacity>
       {children && expanded && <TaskChildren color={_color} list={children} />}
-      {children ? (
+      {children && expanded ? (
         <View style={styles('TaskAddChild')}>
           <Button
             style={styles('TaskAdd')}
@@ -117,7 +126,7 @@ const Task = ({
             disabled={selecting}
             onPress={() => {
               addTask(id)
-              setExpanded(true)
+              setExpanded(id, true)
             }}
           />
         </View>
